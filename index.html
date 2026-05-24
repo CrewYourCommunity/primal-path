@@ -314,6 +314,28 @@
   .nav-btn:disabled { opacity: .3; }
   .nav-btn.primary { background: var(--forest); color: var(--paper); }
 
+  /* ---- Progress footer ---- */
+  .progress-footer {
+    background: var(--forest);
+    padding: 14px 22px 16px;
+    display: flex; gap: 20px;
+    border-top: 1px solid var(--forest-lt);
+  }
+  .prog-col { flex: 1; }
+  .prog-label {
+    font-family: var(--stamp); font-size: 10px; letter-spacing: .18em;
+    text-transform: uppercase; color: #c9d3bf; margin-bottom: 5px;
+  }
+  .prog-bar {
+    height: 6px; background: var(--bg);
+    border-radius: 3px; overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%; background: var(--gold);
+    border-radius: 3px; transition: width .4s ease;
+  }
+  .prog-fill.complete { background: var(--moss); }
+
   .loading, .error {
     padding: 60px 24px; text-align: center;
     font-family: var(--serif-display); font-size: 20px; color: var(--ink-soft);
@@ -344,6 +366,8 @@
   <main id="reader">
     <div class="loading">Opening the trail&hellip;</div>
   </main>
+
+  <div class="progress-footer" id="progressFooter"></div>
 
   <footer>Press On &middot; The Primal Path</footer>
 </div>
@@ -460,6 +484,45 @@ function renderDayTabs() {
     };
     wrap.appendChild(t);
   });
+}
+
+/* ---------- Render: progress footer ---------- */
+function renderProgressFooter() {
+  const el = $('progressFooter');
+  if (!el) return;
+
+  const shift = State.manifest.shifts[State.shiftIndex];
+  const shiftDays = shift.weeks.length * 5;
+  let shiftDone = 0;
+  shift.weeks.forEach((w) => {
+    for (let day = 1; day <= 5; day++) {
+      if (isDayDone(shift.shift, w.week, day)) shiftDone++;
+    }
+  });
+
+  let totalDays = 0, totalDone = 0;
+  State.manifest.shifts.forEach((s) => {
+    if (!s.available) return;
+    s.weeks.forEach((w) => {
+      for (let day = 1; day <= 5; day++) {
+        totalDays++;
+        if (isDayDone(s.shift, w.week, day)) totalDone++;
+      }
+    });
+  });
+
+  const shiftPct = shiftDays > 0 ? Math.round((shiftDone / shiftDays) * 100) : 0;
+  const totalPct = totalDays > 0 ? Math.round((totalDone / totalDays) * 100) : 0;
+
+  el.innerHTML =
+    '<div class="prog-col">' +
+      '<div class="prog-label">Shift ' + shift.shift + ' &mdash; ' + shiftDone + '/' + shiftDays + ' days</div>' +
+      '<div class="prog-bar"><div class="prog-fill' + (shiftPct === 100 ? ' complete' : '') + '" style="width:' + shiftPct + '%"></div></div>' +
+    '</div>' +
+    '<div class="prog-col">' +
+      '<div class="prog-label">Overall &mdash; ' + totalDone + '/' + totalDays + ' days</div>' +
+      '<div class="prog-bar"><div class="prog-fill' + (totalPct === 100 ? ' complete' : '') + '" style="width:' + totalPct + '%"></div></div>' +
+    '</div>';
 }
 
 /* ---------- Helpers ---------- */
