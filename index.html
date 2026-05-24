@@ -335,7 +335,9 @@ async function loadWeek(file) {
 function renderWeekSelector() {
   const sel = $('weekSel');
   sel.innerHTML = '';
-  State.manifest.weeks
+  const shift = State.manifest.shifts[State.shiftIndex];
+  shift.weeks
+    .slice()
     .sort((a, b) => a.week - b.week)
     .forEach((w) => {
       const o = document.createElement('option');
@@ -352,6 +354,7 @@ function renderWeekSelector() {
     saveBookmark();
     renderDayTabs();
     renderDay();
+    renderProgressFooter();
   };
 }
 
@@ -671,17 +674,34 @@ function toggleDay(shiftNum, weekNum, dayNum) {
 async function boot() {
   try {
     State.manifest = await loadManifest();
-    const saved = loadProgress();
-    const files = State.manifest.weeks.map((w) => w.file);
+    State.progress = loadCompletion();
+    const saved = loadBookmark();
+
+    // Restore shift index
+    if (saved && typeof saved.shiftIndex === 'number'
+        && saved.shiftIndex < State.manifest.shifts.length) {
+      State.shiftIndex = saved.shiftIndex;
+    } else {
+      State.shiftIndex = State.manifest.shifts.findIndex((s) => s.available);
+      if (State.shiftIndex < 0) State.shiftIndex = 0;
+    }
+
+    const shift = State.manifest.shifts[State.shiftIndex];
+    const files = shift.weeks.map((w) => w.file);
+
     State.weekFile = (saved && files.includes(saved.weekFile))
       ? saved.weekFile
-      : files[files.length - 1];
+      : files[0];
     if (saved && typeof saved.speedIdx === 'number') State.speedIdx = saved.speedIdx;
+
     State.week = await loadWeek(State.weekFile);
     State.dayIndex = (saved && saved.dayIndex < State.week.days.length) ? saved.dayIndex : 0;
+
+    renderShiftTabs();
     renderWeekSelector();
     renderDayTabs();
     renderDay();
+    renderProgressFooter();
   } catch (e) {
     $('reader').innerHTML = '<div class="error">The trail is blocked.<br>' +
       'Could not load the devotionals.<br><small style="font-size:14px">' + esc(String(e)) + '</small></div>';
