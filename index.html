@@ -153,6 +153,11 @@
     box-shadow: 0 3px 0 #7d3c1d;
   }
   .day-tab.active .num { color: #fff; }
+  .day-tab.done:not(.active) {
+    border-color: var(--moss);
+    color: var(--moss);
+  }
+  .day-tab.done:not(.active) .num { color: var(--moss); }
 
   /* ---- Reader ---- */
   main { padding: 24px 24px 40px; }
@@ -438,10 +443,14 @@ function renderWeekSelector() {
 function renderDayTabs() {
   const wrap = $('dayTabs');
   wrap.innerHTML = '';
+  const shift = State.manifest.shifts[State.shiftIndex];
   State.week.days.forEach((d, i) => {
+    const done = isDayDone(shift.shift, State.week.week, d.day);
     const t = document.createElement('div');
-    t.className = 'day-tab' + (i === State.dayIndex ? ' active' : '');
-    t.innerHTML = '<span class="num">' + d.day + '</span>DAY';
+    t.className = 'day-tab' + (i === State.dayIndex ? ' active' : '') + (done ? ' done' : '');
+    t.innerHTML = done
+      ? '<span class="num">&#10003;</span>DAY'
+      : '<span class="num">' + d.day + '</span>DAY';
     t.onclick = () => {
       stopSpeech();
       State.dayIndex = i;
