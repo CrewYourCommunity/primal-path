@@ -262,6 +262,23 @@
   .prayer-box .section-label::before { background: var(--gold); }
   .prayer-box p { font-size: 17px; line-height: 1.6; font-style: italic; color: #fff; }
 
+  /* ---- Complete button ---- */
+  .complete-btn {
+    display: block; width: 100%;
+    font-family: var(--stamp); font-size: 14px; letter-spacing: .18em;
+    text-transform: uppercase; padding: 15px;
+    border-radius: 8px; border: none; cursor: pointer;
+    margin-top: 20px;
+    background: var(--rust); color: #fff;
+    box-shadow: 0 3px 0 #7d3c1d;
+    transition: background .2s, box-shadow .2s;
+  }
+  .complete-btn.done {
+    background: var(--moss);
+    box-shadow: 0 3px 0 #4a5433;
+  }
+  .complete-btn:active { transform: translateY(2px); box-shadow: none; }
+
   .extras-toggle {
     width: 100%; text-align: left; cursor: pointer;
     font-family: var(--stamp); font-size: 13px; letter-spacing: .18em;
@@ -521,6 +538,13 @@ function renderDay() {
       '</div>';
   }
 
+  /* complete button */
+  const shift = State.manifest.shifts[State.shiftIndex];
+  const done = isDayDone(shift.shift, State.week.week, d.day);
+  html += '<button class="complete-btn' + (done ? ' done' : '') + '" id="completeBtn">'
+    + (done ? '&#10003; Day Complete' : 'Mark Day Complete')
+    + '</button>';
+
   /* extras — only on last day */
   if (State.dayIndex === State.week.days.length - 1 && State.week.extras && State.week.extras.length) {
     html += '<button class="extras-toggle" id="extrasToggle">&#9656;&nbsp; Manschool &amp; Field Notes (for Dad)</button>';
@@ -554,6 +578,19 @@ function renderDay() {
       $('extrasToggle').innerHTML =
         (b.classList.contains('open') ? '&#9662;' : '&#9656;') +
         '&nbsp; Manschool &amp; Field Notes (for Dad)';
+    };
+  }
+  const completeBtn = $('completeBtn');
+  if (completeBtn) {
+    completeBtn.onclick = () => {
+      const shiftMeta = State.manifest.shifts[State.shiftIndex];
+      toggleDay(shiftMeta.shift, State.week.week, d.day);
+      const nowDone = isDayDone(shiftMeta.shift, State.week.week, d.day);
+      completeBtn.className = 'complete-btn' + (nowDone ? ' done' : '');
+      completeBtn.innerHTML = nowDone ? '&#10003; Day Complete' : 'Mark Day Complete';
+      renderDayTabs();
+      renderProgressFooter();
+      renderWeekBanner();
     };
   }
 }
