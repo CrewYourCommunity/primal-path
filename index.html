@@ -88,6 +88,30 @@
     color: #c9d3bf; margin-top: 5px;
   }
 
+  /* ---- Shift tabs ---- */
+  .shift-tabs {
+    display: flex;
+    background: var(--bg);
+    border-bottom: 1px solid var(--forest-lt);
+  }
+  .shift-tab {
+    flex: 1; text-align: center;
+    font-family: var(--stamp); font-size: 11px; letter-spacing: .22em;
+    text-transform: uppercase; padding: 11px 6px;
+    color: var(--moss); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+    user-select: none;
+  }
+  .shift-tab.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    background: var(--forest);
+  }
+  .shift-tab.unavailable {
+    opacity: .35; cursor: default; pointer-events: none;
+  }
+
   /* ---- Week / day selector strip ---- */
   .selectors {
     display: flex; gap: 10px; padding: 14px 22px 4px; flex-wrap: wrap;
@@ -281,8 +305,10 @@
   <header>
     <div class="kicker">Manschool &middot; A Study in the Life of Moses</div>
     <div class="app-title">The Primal Path</div>
-    <div class="app-sub">From Self to Others</div>
+    <div class="app-sub"></div>
   </header>
+
+  <div class="shift-tabs" id="shiftTabs"></div>
 
   <div class="selectors">
     <div class="field">
@@ -329,6 +355,39 @@ async function loadWeek(file) {
   const res = await fetch('devotionals/' + file, { cache: 'no-cache' });
   if (!res.ok) throw new Error('week');
   return res.json();
+}
+
+/* ---------- Render: shift tabs ---------- */
+function renderShiftTabs() {
+  const wrap = $('shiftTabs');
+  wrap.innerHTML = '';
+  State.manifest.shifts.forEach((s, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'shift-tab'
+      + (i === State.shiftIndex ? ' active' : '')
+      + (!s.available ? ' unavailable' : '');
+    tab.textContent = 'Shift ' + s.shift;
+    if (s.available) {
+      tab.onclick = async () => {
+        if (i === State.shiftIndex) return;
+        stopSpeech();
+        State.shiftIndex = i;
+        State.weekFile = s.weeks[0].file;
+        State.dayIndex = 0;
+        State.week = await loadWeek(State.weekFile);
+        saveBookmark();
+        renderShiftTabs();
+        renderWeekSelector();
+        renderDayTabs();
+        renderDay();
+        renderProgressFooter();
+      };
+    }
+    wrap.appendChild(tab);
+  });
+  // Update header subtitle to match active shift title
+  const subEl = document.querySelector('.app-sub');
+  if (subEl) subEl.textContent = State.manifest.shifts[State.shiftIndex].title;
 }
 
 /* ---------- Render: week selector ---------- */
