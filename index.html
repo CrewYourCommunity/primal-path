@@ -336,6 +336,26 @@
   }
   .prog-fill.complete { background: var(--moss); }
 
+  /* ---- Week completion banner ---- */
+  .week-banner {
+    background: var(--forest);
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    text-align: center;
+    animation: fade .3s ease;
+  }
+  .week-banner .banner-icon { font-size: 26px; margin-bottom: 6px; }
+  .week-banner .banner-title {
+    font-family: var(--serif-display); font-size: 22px;
+    color: var(--paper); font-weight: 600;
+  }
+  .week-banner .banner-sub {
+    font-family: var(--stamp); font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--gold); margin-top: 6px;
+  }
+
   .loading, .error {
     padding: 60px 24px; text-align: center;
     font-family: var(--serif-display); font-size: 20px; color: var(--ink-soft);
@@ -525,6 +545,45 @@ function renderProgressFooter() {
     '</div>';
 }
 
+/* ---------- Render: week completion banner ---------- */
+function renderWeekBanner() {
+  const existing = document.getElementById('weekBanner');
+  const shift = State.manifest.shifts[State.shiftIndex];
+
+  const allDone = State.week.days.every((d) =>
+    isDayDone(shift.shift, State.week.week, d.day)
+  );
+
+  if (!allDone) {
+    if (existing) existing.remove();
+    return;
+  }
+
+  let totalDone = 0;
+  State.manifest.shifts.forEach((s) => {
+    if (!s.available) return;
+    s.weeks.forEach((w) => {
+      for (let day = 1; day <= 5; day++) {
+        if (isDayDone(s.shift, w.week, day)) totalDone++;
+      }
+    });
+  });
+
+  const html =
+    '<div id="weekBanner" class="week-banner">' +
+      '<div class="banner-icon">&#9876;</div>' +
+      '<div class="banner-title">Week ' + State.week.week + ' Complete!</div>' +
+      '<div class="banner-sub">' + totalDone + ' days on the path</div>' +
+    '</div>';
+
+  if (existing) {
+    existing.outerHTML = html;
+  } else {
+    const dayHead = $('reader').querySelector('.day-head');
+    if (dayHead) dayHead.insertAdjacentHTML('beforebegin', html);
+  }
+}
+
 /* ---------- Helpers ---------- */
 function paragraphs(text) {
   return (text || '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
@@ -665,6 +724,7 @@ function renderDay() {
       renderWeekBanner();
     };
   }
+  renderWeekBanner();
 }
 
 function gotoDay(i) {
