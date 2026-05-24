@@ -1,0 +1,7 @@
+{
+  "weeks": [
+    { "file": "week1.json", "week": 1 },
+    { "file": "week2.json", "week": 2 },
+    { "file": "week3.json", "week": 3 }
+  ]
+}

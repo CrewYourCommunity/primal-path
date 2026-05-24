@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1f2a22" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Primal Path" />
+<link rel="manifest" href="app.webmanifest" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" href="favicon.ico" />
+<title>The Primal Path</title>
+<style>
+  /* ---- Fonts ---- */
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Spectral:ital,wght@0,400;0,500;1,400&family=Oswald:wght@500;600&display=swap');
+
+  :root {
+    --bg:        #1c241d;
+    --bg-paper:  #f3 ecd9;
+    --paper:     #f4eedb;
+    --paper-2:   #ece3c9;
+    --ink:       #2a2620;
+    --ink-soft:  #5a5345;
+    --forest:    #2f4032;
+    --forest-lt: #3f5742;
+    --moss:      #6f7d4e;
+    --rust:      #a8542a;
+    --gold:      #b88a2e;
+    --line:      #cdbf97;
+    --shadow:    rgba(20,16,8,.28);
+    --serif-display: 'Cormorant Garamond', Georgia, serif;
+    --serif-body: 'Spectral', Georgia, serif;
+    --stamp: 'Oswald', 'Arial Narrow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--serif-body);
+    color: var(--ink);
+    background: var(--bg);
+    /* topographic texture */
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(111,125,78,.07), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(168,84,42,.06), transparent 45%);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  /* ---- App shell ---- */
+  #app {
+    max-width: 680px;
+    margin: 0 auto;
+    min-height: 100%;
+    background: var(--paper);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    box-shadow: 0 0 60px rgba(0,0,0,.5);
+    position: relative;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* ---- Header ---- */
+  header {
+    background: var(--forest);
+    color: var(--paper);
+    padding: calc(env(safe-area-inset-top) + 18px) 22px 20px;
+    position: relative;
+    border-bottom: 3px solid var(--gold);
+  }
+  header::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px;
+    background: repeating-linear-gradient(90deg, var(--gold) 0 14px, transparent 14px 22px);
+  }
+  .kicker {
+    font-family: var(--stamp); font-size: 12px; letter-spacing: .32em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+  }
+  .app-title {
+    font-family: var(--serif-display); font-weight: 600; font-size: 30px;
+    line-height: 1; letter-spacing: .01em;
+  }
+  .app-sub {
+    font-family: var(--serif-body); font-style: italic; font-size: 14px;
+    color: #c9d3bf; margin-top: 5px;
+  }
+
+  /* ---- Week / day selector strip ---- */
+  .selectors {
+    display: flex; gap: 10px; padding: 14px 22px 4px; flex-wrap: wrap;
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .field { flex: 1; min-width: 130px; }
+  .field label {
+    display: block; font-family: var(--stamp); font-size: 10px;
+    letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  select {
+    width: 100%; font-family: var(--serif-body); font-size: 16px;
+    color: var(--ink); background: var(--paper);
+    border: 1.5px solid var(--line); border-radius: 6px;
+    padding: 9px 10px; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a5345' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+
+  /* ---- Day tabs ---- */
+  .day-tabs {
+    display: flex; gap: 6px; padding: 12px 22px 14px;
+    background: var(--paper-2); border-bottom: 1px solid var(--line);
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .day-tab {
+    flex: 1 0 auto; min-width: 56px; text-align: center;
+    font-family: var(--stamp); font-size: 13px; letter-spacing: .04em;
+    padding: 9px 6px; border-radius: 6px; cursor: pointer;
+    border: 1.5px solid var(--line); background: var(--paper);
+    color: var(--ink-soft); transition: all .15s ease;
+    user-select: none;
+  }
+  .day-tab .num { display: block; font-size: 17px; color: var(--ink); }
+  .day-tab.active {
+    background: var(--rust); border-color: var(--rust); color: #fff;
+    box-shadow: 0 3px 0 #7d3c1d;
+  }
+  .day-tab.active .num { color: #fff; }
+
+  /* ---- Reader ---- */
+  main { padding: 24px 24px 40px; }
+
+  .day-head { margin-bottom: 18px; }
+  .day-eyebrow {
+    font-family: var(--stamp); font-size: 12px; letter-spacing: .26em;
+    text-transform: uppercase; color: var(--rust);
+  }
+  .day-title {
+    font-family: var(--serif-display); font-weight: 600;
+    font-size: 34px; line-height: 1.05; margin-top: 2px;
+    color: var(--forest);
+  }
+  .week-theme-tag {
+    display: inline-block; margin-top: 8px;
+    font-family: var(--serif-body); font-style: italic; font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  /* ---- Play bar ---- */
+  .playbar {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--forest); border-radius: 10px;
+    padding: 14px 16px; margin: 18px 0 26px;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+  .play-btn {
+    flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%;
+    background: var(--gold); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 0 #8a6620; transition: transform .1s;
+  }
+  .play-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #8a6620; }
+  .play-btn svg { width: 24px; height: 24px; fill: var(--forest); }
+  .play-meta { flex: 1; color: var(--paper); }
+  .play-label {
+    font-family: var(--stamp); font-size: 13px; letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .play-status {
+    font-family: var(--serif-body); font-style: italic;
+    font-size: 13px; color: #c9d3bf; margin-top: 2px;
+  }
+  .speed-btn {
+    flex: 0 0 auto; font-family: var(--stamp); font-size: 13px;
+    color: var(--paper); background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.25); border-radius: 6px;
+    padding: 8px 10px; cursor: pointer;
+  }
+
+  /* ---- Sections ---- */
+  .section { margin-bottom: 28px; }
+  .section-label {
+    font-family: var(--stamp); font-size: 13px; letter-spacing: .24em;
+    text-transform: uppercase; color: var(--rust);
+    padding-bottom: 6px; margin-bottom: 12px;
+    border-bottom: 2px solid var(--line);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::before {
+    content: ""; width: 9px; height: 9px; background: var(--gold);
+    transform: rotate(45deg); flex: 0 0 auto;
+  }
+
+  .scripture {
+    font-family: var(--serif-display); font-size: 21px; line-height: 1.5;
+    font-style: italic; color: var(--forest);
+    border-left: 3px solid var(--gold); padding-left: 16px;
+  }
+  .scripture .ref {
+    display: block; font-family: var(--stamp); font-style: normal;
+    font-size: 12px; letter-spacing: .18em; color: var(--rust);
+    margin-bottom: 8px;
+  }
+
+  .prose p {
+    font-size: 17.5px; line-height: 1.62; margin-bottom: 14px;
+    color: var(--ink);
+  }
+  .prose p:last-child { margin-bottom: 0; }
+
+  /* sentence highlight while reading */
+  .spoken { background: rgba(184,138,46,.34); border-radius: 3px; }
+
+  ol.questions { list-style: none; counter-reset: q; }
+  ol.questions li {
+    counter-increment: q; position: relative;
+    padding: 12px 12px 12px 50px; margin-bottom: 10px;
+    background: var(--paper-2); border: 1px solid var(--line);
+    border-radius: 8px; font-size: 16.5px; line-height: 1.5;
+  }
+  ol.questions li::before {
+    content: counter(q); position: absolute; left: 12px; top: 11px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--forest); color: var(--paper);
+    font-family: var(--stamp); font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .prayer-box {
+    background: var(--forest); color: var(--paper);
+    border-radius: 10px; padding: 18px 18px 20px;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+  .prayer-box .section-label { color: var(--gold); border-color: rgba(255,255,255,.2); }
+  .prayer-box .section-label::before { background: var(--gold); }
+  .prayer-box p { font-size: 17px; line-height: 1.6; font-style: italic; color: #fff; }
+
+  .extras-toggle {
+    width: 100%; text-align: left; cursor: pointer;
+    font-family: var(--stamp); font-size: 13px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-soft);
+    background: var(--paper-2); border: 1px dashed var(--line);
+    border-radius: 8px; padding: 14px 16px; margin-top: 8px;
+  }
+  .extras-body {
+    display: none; padding: 16px 4px 0;
+  }
+  .extras-body.open { display: block; }
+  .extras-body p { font-size: 16px; line-height: 1.55; margin-bottom: 12px; color: var(--ink-soft); }
+
+  footer {
+    text-align: center; padding: 26px 20px calc(28px + env(safe-area-inset-bottom));
+    font-family: var(--stamp); font-size: 11px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-soft);
+    border-top: 1px solid var(--line);
+  }
+
+  .nav-row { display: flex; gap: 12px; margin-top: 30px; }
+  .nav-btn {
+    flex: 1; font-family: var(--stamp); font-size: 13px; letter-spacing: .12em;
+    text-transform: uppercase; padding: 14px; cursor: pointer;
+    border: 1.5px solid var(--forest); border-radius: 8px;
+    background: var(--paper); color: var(--forest);
+  }
+  .nav-btn:disabled { opacity: .3; }
+  .nav-btn.primary { background: var(--forest); color: var(--paper); }
+
+  .loading, .error {
+    padding: 60px 24px; text-align: center;
+    font-family: var(--serif-display); font-size: 20px; color: var(--ink-soft);
+  }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  main { animation: fade .25s ease; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="kicker">Manschool &middot; A Study in the Life of Moses</div>
+    <div class="app-title">The Primal Path</div>
+    <div class="app-sub">From Self to Others</div>
+  </header>
+
+  <div class="selectors">
+    <div class="field">
+      <label for="weekSel">Week</label>
+      <select id="weekSel"></select>
+    </div>
+  </div>
+
+  <div class="day-tabs" id="dayTabs"></div>
+
+  <main id="reader">
+    <div class="loading">Opening the trail&hellip;</div>
+  </main>
+
+  <footer>Press On &middot; The Primal Path</footer>
+</div>
+
+<script>
+/* ============================================================
+   The Primal Path — devotional reader PWA
+   Pure vanilla JS. Loads week JSON, renders a day, reads aloud.
+   ============================================================ */
+
+const State = {
+  manifest: null,
+  week: null,        // loaded week object
+  weekFile: null,
+  dayIndex: 0,
+  speeds: [0.85, 1.0, 1.15],
+  speedIdx: 1,
+};
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- Data loading ---------- */
+async function loadManifest() {
+  const res = await fetch('devotionals/manifest.json', { cache: 'no-cache' });
+  if (!res.ok) throw new Error('manifest');
+  return res.json();
+}
+async function loadWeek(file) {
+  const res = await fetch('devotionals/' + file, { cache: 'no-cache' });
+  if (!res.ok) throw new Error('week');
+  return res.json();
+}
+
+/* ---------- Render: week selector ---------- */
+function renderWeekSelector() {
+  const sel = $('weekSel');
+  sel.innerHTML = '';
+  State.manifest.weeks
+    .sort((a, b) => a.week - b.week)
+    .forEach((w) => {
+      const o = document.createElement('option');
+      o.value = w.file;
+      o.textContent = 'Week ' + w.week;
+      sel.appendChild(o);
+    });
+  sel.value = State.weekFile;
+  sel.onchange = async () => {
+    stopSpeech();
+    State.weekFile = sel.value;
+    State.dayIndex = 0;
+    State.week = await loadWeek(State.weekFile);
+    saveProgress();
+    renderDayTabs();
+    renderDay();
+  };
+}
+
+/* ---------- Render: day tabs ---------- */
+function renderDayTabs() {
+  const wrap = $('dayTabs');
+  wrap.innerHTML = '';
+  State.week.days.forEach((d, i) => {
+    const t = document.createElement('div');
+    t.className = 'day-tab' + (i === State.dayIndex ? ' active' : '');
+    t.innerHTML = '<span class="num">' + d.day + '</span>DAY';
+    t.onclick = () => {
+      stopSpeech();
+      State.dayIndex = i;
+      saveProgress();
+      renderDayTabs();
+      renderDay();
+    };
+    wrap.appendChild(t);
+  });
+}
+
+/* ---------- Helpers ---------- */
+function paragraphs(text) {
+  return (text || '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+}
+// Pull a leading scripture reference (e.g. "ACTS 7:22") off the front.
+function splitScripture(text) {
+  const m = (text || '').match(/^([A-Z][A-Za-z]+\.? \d+:\d+(?:[-\u2013]\d+)?)\b\s*(.*)$/s);
+  if (m) {
+    let body = m[2].trim();
+    // Drop a stray leading verse number left over from the reference.
+    body = body.replace(/^\d+\s+/, '');
+    return { ref: m[1].trim(), body: body };
+  }
+  return { ref: '', body: (text || '').trim() };
+}
+
+/* ---------- Render: a day ---------- */
+function renderDay() {
+  const d = State.week.days[State.dayIndex];
+  const reader = $('reader');
+  const scr = splitScripture(d.scripture);
+
+  let html = '';
+  html += '<div class="day-head">';
+  html += '  <div class="day-eyebrow">Day ' + d.day + ' &middot; Week ' + State.week.week + '</div>';
+  html += '  <div class="day-title">' + esc(d.title) + '</div>';
+  if (State.week.weekTheme) {
+    // Use the short opening motto (before the first sentence break).
+    const themeFirst = State.week.weekTheme.split(/\.\s/)[0].split(/\b(?:This week)\b/)[0].trim();
+    if (themeFirst) html += '  <span class="week-theme-tag">' + esc(themeFirst) + '</span>';
+  }
+  html += '</div>';
+
+  /* play bar */
+  html += '<div class="playbar">';
+  html += '  <button class="play-btn" id="playBtn" aria-label="Read aloud">' + iconPlay() + '</button>';
+  html += '  <div class="play-meta">';
+  html += '    <div class="play-label">Read Aloud</div>';
+  html += '    <div class="play-status" id="playStatus">Tap to hear today&rsquo;s devotion</div>';
+  html += '  </div>';
+  html += '  <button class="speed-btn" id="speedBtn">' + State.speeds[State.speedIdx] + '&times;</button>';
+  html += '</div>';
+
+  /* scripture */
+  html += section('Scripture',
+    '<div class="scripture">' +
+      (scr.ref ? '<span class="ref">' + esc(scr.ref) + '</span>' : '') +
+      esc(scr.body) + '</div>');
+
+  /* reflection */
+  html += section('Reflection',
+    '<div class="prose">' + paragraphs(d.reflection).map((p) => '<p>' + esc(p) + '</p>').join('') + '</div>');
+
+  /* questions */
+  if (d.questions && d.questions.length) {
+    html += section('Questions',
+      '<ol class="questions">' + d.questions.map((q) => '<li>' + esc(q) + '</li>').join('') + '</ol>');
+  }
+
+  /* thoughts */
+  if (d.thoughts && (d.thoughts.verse || (d.thoughts.prompts && d.thoughts.prompts.length))) {
+    let t = '';
+    if (d.thoughts.verse) {
+      t += '<p style="font-family:var(--stamp);font-size:11px;letter-spacing:.18em;' +
+           'text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px">' +
+           'Read this verse slowly &mdash; twice</p>';
+      t += '<div class="scripture" style="font-size:19px">' +
+           (d.thoughts.reference ? '<span class="ref">' + esc(d.thoughts.reference) + '</span>' : '') +
+           esc(d.thoughts.verse) + '</div>';
+    }
+    if (d.thoughts.prompts && d.thoughts.prompts.length) {
+      t += '<ol class="questions" style="margin-top:16px">' +
+           d.thoughts.prompts.map((q) => '<li>' + esc(q) + '</li>').join('') + '</ol>';
+    }
+    html += section('Thoughts', t);
+  }
+
+  /* prayer */
+  if (d.prayer) {
+    html += '<div class="section prayer-box">' +
+      '<div class="section-label">Prayer</div>' +
+      '<div class="prose">' + paragraphs(d.prayer).map((p) => '<p>' + esc(p) + '</p>').join('') + '</div>' +
+      '</div>';
+  }
+
+  /* extras — only on last day */
+  if (State.dayIndex === State.week.days.length - 1 && State.week.extras && State.week.extras.length) {
+    html += '<button class="extras-toggle" id="extrasToggle">&#9656;&nbsp; Manschool &amp; Field Notes (for Dad)</button>';
+    html += '<div class="extras-body" id="extrasBody">' +
+      State.week.extras.map((e) =>
+        paragraphs(e).map((p) => '<p>' + esc(p) + '</p>').join('')
+      ).join('<hr style="border:none;border-top:1px dashed var(--line);margin:14px 0">') +
+      '</div>';
+  }
+
+  /* nav */
+  const last = State.week.days.length - 1;
+  html += '<div class="nav-row">';
+  html += '  <button class="nav-btn" id="prevBtn"' + (State.dayIndex === 0 ? ' disabled' : '') + '>&larr; Previous Day</button>';
+  html += '  <button class="nav-btn primary" id="nextBtn"' + (State.dayIndex === last ? ' disabled' : '') + '>Next Day &rarr;</button>';
+  html += '</div>';
+
+  reader.innerHTML = html;
+  reader.scrollIntoView({ block: 'start' });
+  window.scrollTo(0, 0);
+
+  /* wire up controls */
+  $('playBtn').onclick = toggleSpeech;
+  $('speedBtn').onclick = cycleSpeed;
+  if ($('prevBtn')) $('prevBtn').onclick = () => { if (State.dayIndex > 0) { gotoDay(State.dayIndex - 1); } };
+  if ($('nextBtn')) $('nextBtn').onclick = () => { if (State.dayIndex < last) { gotoDay(State.dayIndex + 1); } };
+  if ($('extrasToggle')) {
+    $('extrasToggle').onclick = () => {
+      const b = $('extrasBody');
+      b.classList.toggle('open');
+      $('extrasToggle').innerHTML =
+        (b.classList.contains('open') ? '&#9662;' : '&#9656;') +
+        '&nbsp; Manschool &amp; Field Notes (for Dad)';
+    };
+  }
+}
+
+function gotoDay(i) {
+  stopSpeech();
+  State.dayIndex = i;
+  saveProgress();
+  renderDayTabs();
+  renderDay();
+}
+
+function section(label, inner) {
+  return '<div class="section"><div class="section-label">' + label + '</div>' + inner + '</div>';
+}
+function esc(s) {
+  return (s || '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+}
+function iconPlay() {
+  return '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+}
+function iconPause() {
+  return '<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+}
+
+/* ---------- Speech (Web Speech API) ---------- */
+let speechQueue = [];   // array of {el, text}
+let speechPos = 0;
+let speaking = false;
+
+function buildSpeechQueue() {
+  // Read in natural order: title, scripture, reflection, questions, thoughts, prayer.
+  const d = State.week.days[State.dayIndex];
+  const q = [];
+  q.push({ text: 'Day ' + d.day + '. ' + d.title + '.' });
+  const scr = splitScripture(d.scripture);
+  q.push({ text: 'Scripture. ' + scr.body });
+  q.push({ text: 'Reflection.' });
+  sentences(d.reflection).forEach((s) => q.push({ text: s }));
+  if (d.questions && d.questions.length) {
+    q.push({ text: 'Questions.' });
+    d.questions.forEach((s, i) => q.push({ text: 'Number ' + (i + 1) + '. ' + s }));
+  }
+  if (d.thoughts && (d.thoughts.verse || (d.thoughts.prompts && d.thoughts.prompts.length))) {
+    q.push({ text: 'Thoughts.' });
+    if (d.thoughts.verse) {
+      q.push({ text: 'Read this verse slowly. ' + d.thoughts.verse });
+    }
+    if (d.thoughts.prompts) {
+      d.thoughts.prompts.forEach((s) => q.push({ text: s }));
+    }
+  }
+  if (d.prayer) {
+    q.push({ text: 'Prayer.' });
+    sentences(d.prayer).forEach((s) => q.push({ text: s }));
+  }
+  return q;
+}
+function sentences(text) {
+  return (text || '')
+    .replace(/\n+/g, ' ')
+    .match(/[^.!?]+[.!?]*/g) || [];
+}
+
+function pickVoice() {
+  const voices = speechSynthesis.getVoices();
+  // Prefer a natural en-US/en-GB voice.
+  const pref = voices.find((v) => /en[-_]US/i.test(v.lang) && /natural|samantha|aaron|nathan/i.test(v.name))
+    || voices.find((v) => /en[-_]US/i.test(v.lang))
+    || voices.find((v) => /^en/i.test(v.lang));
+  return pref || null;
+}
+
+function speakNext() {
+  if (speechPos >= speechQueue.length) { stopSpeech(); return; }
+  const item = speechQueue[speechPos];
+  const u = new SpeechSynthesisUtterance(item.text);
+  const v = pickVoice();
+  if (v) u.voice = v;
+  u.rate = State.speeds[State.speedIdx];
+  u.pitch = 1.0;
+  u.onend = () => {
+    if (!speaking) return;
+    speechPos++;
+    updateStatus();
+    speakNext();
+  };
+  u.onerror = () => { speechPos++; if (speaking) speakNext(); };
+  speechSynthesis.speak(u);
+}
+
+function toggleSpeech() {
+  if (speaking) { stopSpeech(); return; }
+  if (!('speechSynthesis' in window)) {
+    $('playStatus').textContent = 'Read-aloud is not supported on this device.';
+    return;
+  }
+  speechQueue = buildSpeechQueue();
+  speechPos = 0;
+  speaking = true;
+  $('playBtn').innerHTML = iconPause();
+  updateStatus();
+  speakNext();
+}
+function stopSpeech() {
+  speaking = false;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  const b = $('playBtn');
+  if (b) b.innerHTML = iconPlay();
+  const s = $('playStatus');
+  if (s) s.textContent = 'Tap to hear today\u2019s devotion';
+}
+function updateStatus() {
+  const s = $('playStatus');
+  if (!s) return;
+  const pct = Math.round((speechPos / speechQueue.length) * 100);
+  s.textContent = speaking ? 'Reading\u2026 ' + pct + '%' : 'Tap to hear today\u2019s devotion';
+}
+function cycleSpeed() {
+  State.speedIdx = (State.speedIdx + 1) % State.speeds.length;
+  $('speedBtn').innerHTML = State.speeds[State.speedIdx] + '\u00d7';
+  saveProgress();
+  if (speaking) {
+    // restart current sentence at new speed
+    speechSynthesis.cancel();
+    speakNext();
+  }
+}
+
+/* ---------- Progress persistence ---------- */
+function saveProgress() {
+  try {
+    localStorage.setItem('primalpath', JSON.stringify({
+      weekFile: State.weekFile, dayIndex: State.dayIndex, speedIdx: State.speedIdx,
+    }));
+  } catch (e) { /* private mode — ignore */ }
+}
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem('primalpath');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+/* ---------- Boot ---------- */
+async function boot() {
+  try {
+    State.manifest = await loadManifest();
+    const saved = loadProgress();
+    const files = State.manifest.weeks.map((w) => w.file);
+    State.weekFile = (saved && files.includes(saved.weekFile))
+      ? saved.weekFile
+      : files[files.length - 1];
+    if (saved && typeof saved.speedIdx === 'number') State.speedIdx = saved.speedIdx;
+    State.week = await loadWeek(State.weekFile);
+    State.dayIndex = (saved && saved.dayIndex < State.week.days.length) ? saved.dayIndex : 0;
+    renderWeekSelector();
+    renderDayTabs();
+    renderDay();
+  } catch (e) {
+    $('reader').innerHTML = '<div class="error">The trail is blocked.<br>' +
+      'Could not load the devotionals.<br><small style="font-size:14px">' + esc(String(e)) + '</small></div>';
+  }
+}
+
+// voices load asynchronously on iOS
+if ('speechSynthesis' in window) {
+  speechSynthesis.onvoiceschanged = () => {};
+}
+window.addEventListener('beforeunload', stopSpeech);
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopSpeech(); });
+
+// register service worker for offline use
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+boot();
+</script>
+</body>
+</html>
