@@ -2,7 +2,7 @@
    Caches the app shell + all devotional JSON so it works fully offline.
    Bump CACHE_VERSION whenever you add a new week or change the app. */
 
-const CACHE_VERSION = 'primal-path-v1';
+const CACHE_VERSION = 'primal-path-v2';
 
 // Core files always cached on install.
 const CORE_ASSETS = [
