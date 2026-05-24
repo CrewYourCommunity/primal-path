@@ -2,6 +2,13 @@
   "weeks": [
     { "file": "week1.json", "week": 1 },
     { "file": "week2.json", "week": 2 },
-    { "file": "week3.json", "week": 3 }
+    { "file": "week3.json", "week": 3 },
+    { "file": "week4.json", "week": 4 },
+    { "file": "week5.json", "week": 5 },
+    { "file": "week6.json", "week": 6 },
+    { "file": "week7.json", "week": 7 },
+    { "file": "week8.json", "week": 8 },
+    { "file": "week9.json", "week": 9 },
+    { "file": "week10.json", "week": 10 }
   ]
 }
