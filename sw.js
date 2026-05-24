@@ -22,7 +22,9 @@ self.addEventListener('install', (event) => {
     try {
       const res = await fetch('devotionals/manifest.json', { cache: 'no-cache' });
       const manifest = await res.json();
-      const weekFiles = manifest.weeks.map((w) => 'devotionals/' + w.file);
+      const weekFiles = manifest.shifts.flatMap((s) =>
+        s.weeks.map((w) => 'devotionals/' + w.file)
+      );
       await cache.addAll(weekFiles);
     } catch (e) {
       /* offline at install — weeks get cached on first online fetch */
