@@ -307,12 +307,14 @@
    ============================================================ */
 
 const State = {
-  manifest: null,
-  week: null,        // loaded week object
-  weekFile: null,
+  manifest: null,       // { shifts: [...] }
+  shiftIndex: 1,        // default to shift 2 (index 1)
+  week: null,           // loaded week object
+  weekFile: null,       // e.g. "shift2/week3.json"
   dayIndex: 0,
   speeds: [0.85, 1.0, 1.15],
   speedIdx: 1,
+  progress: {},         // { "2-3-1": true } — shift-week-day keys
 };
 
 const $ = (id) => document.getElementById(id);
@@ -347,7 +349,7 @@ function renderWeekSelector() {
     State.weekFile = sel.value;
     State.dayIndex = 0;
     State.week = await loadWeek(State.weekFile);
-    saveProgress();
+    saveBookmark();
     renderDayTabs();
     renderDay();
   };
@@ -364,7 +366,7 @@ function renderDayTabs() {
     t.onclick = () => {
       stopSpeech();
       State.dayIndex = i;
-      saveProgress();
+      saveBookmark();
       renderDayTabs();
       renderDay();
     };
@@ -497,7 +499,7 @@ function renderDay() {
 function gotoDay(i) {
   stopSpeech();
   State.dayIndex = i;
-  saveProgress();
+  saveBookmark();
   renderDayTabs();
   renderDay();
 }
@@ -611,7 +613,7 @@ function updateStatus() {
 function cycleSpeed() {
   State.speedIdx = (State.speedIdx + 1) % State.speeds.length;
   $('speedBtn').innerHTML = State.speeds[State.speedIdx] + '\u00d7';
-  saveProgress();
+  saveBookmark();
   if (speaking) {
     // restart current sentence at new speed
     speechSynthesis.cancel();
@@ -620,19 +622,49 @@ function cycleSpeed() {
 }
 
 /* ---------- Progress persistence ---------- */
-function saveProgress() {
+function saveBookmark() {
   try {
     localStorage.setItem('primalpath', JSON.stringify({
-      weekFile: State.weekFile, dayIndex: State.dayIndex, speedIdx: State.speedIdx,
+      weekFile: State.weekFile,
+      dayIndex: State.dayIndex,
+      speedIdx: State.speedIdx,
+      shiftIndex: State.shiftIndex,
     }));
-  } catch (e) { /* private mode — ignore */ }
+  } catch (e) {}
 }
-function loadProgress() {
+function loadBookmark() {
   try {
     const raw = localStorage.getItem('primalpath');
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return null;
+}
+function saveCompletion() {
+  try {
+    localStorage.setItem('primal-path-progress', JSON.stringify(State.progress));
+  } catch (e) {}
+}
+function loadCompletion() {
+  try {
+    const raw = localStorage.getItem('primal-path-progress');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {};
+}
+function progressKey(shiftNum, weekNum, dayNum) {
+  return shiftNum + '-' + weekNum + '-' + dayNum;
+}
+function isDayDone(shiftNum, weekNum, dayNum) {
+  return !!State.progress[progressKey(shiftNum, weekNum, dayNum)];
+}
+function toggleDay(shiftNum, weekNum, dayNum) {
+  const key = progressKey(shiftNum, weekNum, dayNum);
+  if (State.progress[key]) {
+    delete State.progress[key];
+  } else {
+    State.progress[key] = true;
+  }
+  saveCompletion();
 }
 
 /* ---------- Boot ---------- */
