@@ -50,6 +50,40 @@
         { "file": "shift3/week9.json", "week": 9 },
         { "file": "shift3/week10.json", "week": 10 }
       ]
+    },
+    {
+      "shift": 4,
+      "title": "From Control to Surrender",
+      "available": true,
+      "weeks": [
+        { "file": "shift4/week1.json", "week": 1 },
+        { "file": "shift4/week2.json", "week": 2 },
+        { "file": "shift4/week3.json", "week": 3 },
+        { "file": "shift4/week4.json", "week": 4 },
+        { "file": "shift4/week5.json", "week": 5 },
+        { "file": "shift4/week6.json", "week": 6 },
+        { "file": "shift4/week7.json", "week": 7 },
+        { "file": "shift4/week8.json", "week": 8 },
+        { "file": "shift4/week9.json", "week": 9 },
+        { "file": "shift4/week10.json", "week": 10 }
+      ]
+    },
+    {
+      "shift": 5,
+      "title": "From the Temporary to the Eternal",
+      "available": true,
+      "weeks": [
+        { "file": "shift5/week1.json", "week": 1 },
+        { "file": "shift5/week2.json", "week": 2 },
+        { "file": "shift5/week3.json", "week": 3 },
+        { "file": "shift5/week4.json", "week": 4 },
+        { "file": "shift5/week5.json", "week": 5 },
+        { "file": "shift5/week6.json", "week": 6 },
+        { "file": "shift5/week7.json", "week": 7 },
+        { "file": "shift5/week8.json", "week": 8 },
+        { "file": "shift5/week9.json", "week": 9 },
+        { "file": "shift5/week10.json", "week": 10 }
+      ]
     }
   ]
 }
